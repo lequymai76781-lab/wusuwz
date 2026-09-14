@@ -91,3 +91,27 @@ filterButtons.forEach((button) => button.addEventListener('click', () => {
     card.hidden = filter !== 'all' && card.dataset.category !== filter;
   });
 }));
+
+const expertDetail = document.querySelector('[data-expert-detail]');
+if (expertDetail && window.EXPERTS) {
+  const id = new URLSearchParams(location.search).get('id');
+  const expert = window.EXPERTS.find((item) => item.id === id);
+  if (!expert) {
+    document.title = '专家未找到｜非物质文化遗产研究中心';
+    expertDetail.innerHTML = '<section class="content-section"><h1>未找到专家资料</h1><p><a href="people.html#experts">返回专家团队 →</a></p></section>';
+  } else {
+    document.title = `${expert.name}｜专家简介｜非物质文化遗产研究中心`;
+    const image = expertDetail.querySelector('[data-expert-image]');
+    image.src = expert.image;
+    image.alt = expert.name;
+    expertDetail.querySelector('[data-expert-name]').textContent = expert.name;
+    expertDetail.querySelector('[data-expert-role]').textContent = expert.role;
+    expertDetail.querySelector('[data-expert-intro]').textContent = expert.intro;
+    expertDetail.querySelector('[data-expert-tags]').innerHTML = expert.tags.map((tag) => `<span>${tag}</span>`).join('');
+    expertDetail.querySelector('[data-expert-sections]').innerHTML = expert.sections.map(([title, body], index) => `
+      <section class="expert-section">
+        <span>${String(index + 1).padStart(2, '0')}</span>
+        <div><h2>${title}</h2><p>${body}</p></div>
+      </section>`).join('');
+  }
+}
