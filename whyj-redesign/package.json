@@ -1,0 +1,11 @@
+{
+  "name": "whyj-redesign",
+  "private": true,
+  "scripts": {
+    "test:structure": "python -m unittest tests.test_v2_structure -v",
+    "test:browser": "node tests/browser-smoke.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}
