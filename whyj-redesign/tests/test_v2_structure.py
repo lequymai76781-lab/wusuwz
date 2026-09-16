@@ -88,10 +88,10 @@ class V2StructureTests(unittest.TestCase):
         }
         self.assertEqual(expected, {name for name in expected if (ROOT / name).exists()})
 
-    def test_home_has_one_carousel_and_four_content_regions(self):
+    def test_home_has_one_carousel_and_one_core_grid(self):
         dom = load_dom("index.html")
         sections = [node.attrs["data-home-section"] for node in find_all(dom, attr="data-home-section")]
-        self.assertEqual(["banner", "about", "news", "notices", "research"], sections)
+        self.assertEqual(["banner", "core-grid"], sections)
         self.assertEqual(3, len(find_all(dom, attr="data-slide")))
         self.assertEqual(3, len(find_all(dom, attr="data-go")))
 

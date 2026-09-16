@@ -105,6 +105,46 @@ if (hero) {
   start();
 }
 
+const heritageTrack = document.querySelector('[data-heritage-track]');
+if (heritageTrack) {
+  let trackFrame = 0;
+
+  const resetHeritageTrackMotion = () => {
+    heritageTrack.style.setProperty('--track-progress', '0');
+    heritageTrack.style.setProperty('--track-scroll-shift', '0px');
+    heritageTrack.style.setProperty('--track-pointer-shift', '0px');
+  };
+
+  const updateHeritageTrack = () => {
+    trackFrame = 0;
+    if (reduceMotion) {
+      resetHeritageTrackMotion();
+      return;
+    }
+    const bounds = heritageTrack.getBoundingClientRect();
+    const progress = Math.max(0, Math.min(1, (innerHeight - bounds.top) / (innerHeight + bounds.height)));
+    heritageTrack.style.setProperty('--track-progress', progress.toFixed(4));
+    heritageTrack.style.setProperty('--track-scroll-shift', `${Math.round((.5 - progress) * 32)}px`);
+  };
+
+  const requestHeritageTrackUpdate = () => {
+    if (!trackFrame) trackFrame = requestAnimationFrame(updateHeritageTrack);
+  };
+
+  heritageTrack.addEventListener('pointermove', (event) => {
+    if (reduceMotion) return;
+    const bounds = heritageTrack.getBoundingClientRect();
+    const normalized = Math.max(-.5, Math.min(.5, (event.clientX - bounds.left) / bounds.width - .5));
+    heritageTrack.style.setProperty('--track-pointer-shift', `${Math.round(normalized * 16)}px`);
+  });
+  heritageTrack.addEventListener('pointerleave', () => {
+    heritageTrack.style.setProperty('--track-pointer-shift', '0px');
+  });
+  addEventListener('scroll', requestHeritageTrackUpdate, { passive: true });
+  addEventListener('resize', requestHeritageTrackUpdate);
+  updateHeritageTrack();
+}
+
 const escapeHTML = (value = '') => String(value).replace(/[&<>'"]/g, (character) => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
 }[character]));
@@ -130,6 +170,20 @@ document.querySelectorAll('[data-news-featured]').forEach((container) => {
   container.innerHTML = `<time datetime="${escapeHTML(item.date)}">${escapeHTML(item.date)}</time><span>${escapeHTML(item.category)}</span><h3>${escapeHTML(item.title)}</h3>${item.summary ? `<p>${escapeHTML(item.summary)}</p>` : ''}<a href="news-detail.html?id=${encodeURIComponent(item.id)}">阅读全文 →</a>`;
 });
 
+const renderMediaList = (container, items, limit) => {
+  const visible = Number.isFinite(limit) ? items.slice(0, limit) : items;
+  container.innerHTML = visible.length ? visible.map((item) => `
+    <article class="media-row">
+      <div class="media-meta"><time datetime="${escapeHTML(item.date)}">${escapeHTML(item.date)}</time>${item.source ? `<span>${escapeHTML(item.source)}</span>` : ''}</div>
+      <h3><a href="media-detail.html?id=${encodeURIComponent(item.id)}">${escapeHTML(item.title)}</a></h3>
+      <a class="row-arrow" href="media-detail.html?id=${encodeURIComponent(item.id)}" aria-label="查看${escapeHTML(item.title)}">→</a>
+    </article>`).join('') : '<p class="pending-copy">媒体聚焦真实内容待补充</p>';
+};
+
+document.querySelectorAll('[data-media-list]').forEach((container) => {
+  renderMediaList(container, window.MEDIA || [], Number(container.dataset.limit) || undefined);
+});
+
 const renderNoticeList = (container, items, limit) => {
   const visible = Number.isFinite(limit) ? items.slice(0, limit) : items;
   container.innerHTML = visible.map((item) => {
@@ -142,20 +196,25 @@ document.querySelectorAll('[data-notice-list]').forEach((container) => {
   renderNoticeList(container, window.NOTICES || [], Number(container.dataset.limit) || undefined);
 });
 
+const articleTypes = {
+  news: { page: 'news.html', label: '中心动态' },
+  notice: { page: 'notices.html', label: '通知公告' },
+  media: { page: 'media.html', label: '媒体聚焦' }
+};
+
 const renderArticleDetail = (root, items, type) => {
   const id = new URLSearchParams(location.search).get('id');
   const item = items.find((entry) => entry.id === id);
-  const returnPage = type === 'news' ? 'news.html' : 'notices.html';
-  const returnLabel = type === 'news' ? '中心动态' : '通知公告';
+  const config = articleTypes[type];
   if (!item) {
     document.title = `内容未找到｜非物质文化遗产研究中心`;
-    root.innerHTML = `<article><h1>未找到相关内容</h1><p>该内容可能尚未导入或链接有误。</p><a class="back-people" href="${returnPage}">← 返回${returnLabel}</a></article>`;
+    root.innerHTML = `<article><h1>未找到相关内容</h1><p>该内容可能尚未导入或链接有误。</p><a class="back-people" href="${config.page}">← 返回${config.label}</a></article>`;
     return;
   }
-  document.title = `${item.title}｜${returnLabel}｜非物质文化遗产研究中心`;
+  document.title = `${item.title}｜${config.label}｜非物质文化遗产研究中心`;
   root.querySelector('[data-article-title]').textContent = item.title;
   root.querySelector('[data-article-date]').textContent = item.date;
-  root.querySelector('[data-article-category]').textContent = item.category;
+  root.querySelector('[data-article-category]').textContent = item.source || item.category;
   root.querySelector('[data-article-body]').innerHTML = item.body
     ? `<p>${escapeHTML(item.body)}</p>`
     : '<p class="pending-copy">正文资料待导入</p>';
@@ -165,6 +224,8 @@ const newsDetail = document.querySelector('[data-news-detail]');
 if (newsDetail) renderArticleDetail(newsDetail, window.NEWS || [], 'news');
 const noticeDetail = document.querySelector('[data-notice-detail]');
 if (noticeDetail) renderArticleDetail(noticeDetail, window.NOTICES || [], 'notice');
+const mediaDetail = document.querySelector('[data-media-detail]');
+if (mediaDetail) renderArticleDetail(mediaDetail, window.MEDIA || [], 'media');
 
 const filterButtons = [...document.querySelectorAll('[data-filter]')];
 filterButtons.forEach((button) => button.addEventListener('click', () => {

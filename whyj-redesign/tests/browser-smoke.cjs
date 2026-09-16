@@ -77,7 +77,7 @@ async function inspectPage(page, url, expectedHeading) {
     for (const viewport of viewports) {
       const page = await browser.newPage({ viewport });
       await inspectPage(page, `${base}/index.html`, /让传统体育/);
-      assert.equal(await page.locator('[data-home-section]').count(), 5, 'home should have five fixed regions');
+      assert.equal(await page.locator('[data-home-section]').count(), 2, 'home should contain the banner and one core grid');
       assert.equal(await page.locator('[data-slide].active').count(), 1, 'carousel should show exactly one slide');
       const firstTitle = await page.locator('[data-slide].active h1, [data-slide].active h2').innerText();
       await page.locator('.home-hero .next').click();
@@ -103,8 +103,10 @@ async function inspectPage(page, url, expectedHeading) {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     const routes = [
       ['/news.html', /中心动态/],
+      ['/media.html', /媒体聚焦/],
       ['/notices.html', /通知公告/],
       ['/news-detail.html?id=national-heritage-meeting-2024', /2024年全国非物质文化遗产保护工作会议/],
+      ['/media-detail.html?id=spring-festival-list-2024', /春节/],
       ['/notice-detail.html?id=heritage-day-notice', /文化和自然遗产日/],
       ['/about.html#organization', /中心简介/],
       ['/people.html#members', /学术团队/],
@@ -119,8 +121,10 @@ async function inspectPage(page, url, expectedHeading) {
     ];
     for (const [route, heading] of routes) await inspectPage(page, base + route, heading);
     await page.goto(`${base}/news.html`, { waitUntil: 'networkidle' });
-    assert.equal(await page.locator('[data-news-list] .news-row').count(), 4);
+    assert.equal(await page.locator('[data-news-list] .news-row').count(), 3);
     await page.screenshot({ path: path.join(visualDir, 'news-list-1440.png'), fullPage: false });
+    await page.goto(`${base}/media.html`, { waitUntil: 'networkidle' });
+    assert.equal(await page.locator('[data-media-list] .media-row').count(), 1);
     await page.goto(`${base}/notices.html`, { waitUntil: 'networkidle' });
     assert.equal(await page.locator('[data-notice-list] .notice-item').count(), 2);
     await page.goto(`${base}/index.html`, { waitUntil: 'networkidle' });
