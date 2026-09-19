@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pathlib
+import re
 import unittest
 from html.parser import HTMLParser
 
@@ -94,6 +95,60 @@ class V2StructureTests(unittest.TestCase):
         self.assertEqual(["banner", "core-grid"], sections)
         self.assertEqual(3, len(find_all(dom, attr="data-slide")))
         self.assertEqual(3, len(find_all(dom, attr="data-go")))
+
+    def test_home_core_grid_uses_results_instead_of_research_directions(self):
+        dom = load_dom("index.html")
+        grid = find_all(dom, class_name="home-core-grid")[0]
+        quadrants = [
+            node.attrs["data-home-quadrant"]
+            for node in grid.children
+            if "data-home-quadrant" in node.attrs
+        ]
+        self.assertEqual(["news", "media", "notices", "results"], quadrants)
+        self.assertEqual([], [node for node in find_all(dom, attr="data-home-quadrant") if node.attrs.get("data-home-quadrant") == "research"])
+        self.assertEqual(1, len(find_all(dom, attr="data-media-list")))
+        self.assertEqual([], find_all(dom, attr="data-home-media-state"))
+
+    def test_home_media_uses_the_three_confirmed_official_articles(self):
+        source = (ROOT / "media-data.js").read_text(encoding="utf-8")
+        urls = re.findall(r'url:\s*"([^"]+)"', source)
+        self.assertEqual([
+            "https://paper.people.com.cn/rmrb/pc/content/202609/17/content_30181548.html",
+            "https://epaper.gmw.cn/gmrb/html/content/202609/08/content_24414.html",
+            "https://epaper.gmw.cn/gmrb/html/content/202609/04/content_24004.html",
+        ], urls)
+        self.assertEqual(1, source.count('source: "人民日报"'))
+        self.assertEqual(2, source.count('source: "光明日报"'))
+        for temporary_copy in ("资料" + "待核验", "来源" + "待确认", "真实报道将在确认媒体来源后" + "发布"):
+            self.assertNotIn(temporary_copy, (ROOT / "index.html").read_text(encoding="utf-8"))
+
+    def test_home_results_are_the_two_verified_wechat_articles(self):
+        data_path = ROOT / "research-results-data.js"
+        self.assertTrue(data_path.exists(), "research results need their own data source")
+        source = data_path.read_text(encoding="utf-8")
+        urls = re.findall(r'url:\s*"([^"]+)"', source)
+        self.assertEqual([
+            "https://mp.weixin.qq.com/s/7CfV_VVHeiJMG84GoI4UHA",
+            "https://mp.weixin.qq.com/s/qg4LxiSi-ZOupq19c1rmjA",
+        ], urls)
+        scripts = [node.attrs.get("src") for node in find_all(load_dom("index.html"), tag="script")]
+        self.assertIn("research-results-data.js", scripts)
+        self.assertEqual(1, len(find_all(load_dom("index.html"), attr="data-research-results")))
+
+    def test_home_header_has_a_distinct_brand_lockup(self):
+        dom = load_dom("index.html")
+        self.assertEqual(1, len(find_all(dom, attr="data-brand-lockup")))
+        self.assertEqual(1, len(find_all(dom, class_name="identity-copy")))
+
+    def test_institution_name_is_current_on_every_page(self):
+        current_name = "湖北省非物质文化遗产中心"
+        retired_name = "非物质文化遗产" + "研究中心"
+        for path in sorted(ROOT.glob("*.html")):
+            with self.subTest(page=path.name):
+                source = path.read_text(encoding="utf-8")
+                self.assertIn(current_name, source)
+                self.assertIn(f"© {current_name}", source)
+                self.assertNotIn(retired_name, source)
 
     def test_every_page_uses_the_frozen_primary_navigation(self):
         expected = ["首页", "中心简介", "中心动态", "学术团队", "他山之石", "联系我们", "武体首页"]

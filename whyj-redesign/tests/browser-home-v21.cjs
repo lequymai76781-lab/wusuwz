@@ -38,17 +38,17 @@ const server = http.createServer((request, response) => {
     const desktopGridDisplay = await desktop.locator('.home-core-grid').evaluate((node) => getComputedStyle(node).display);
     assert.equal(desktopGridDisplay, 'grid');
     assert.equal(await desktop.locator('[data-home-quadrant="news"] .news-row').count(), 3);
-    assert.equal(await desktop.locator('[data-home-quadrant="media"] .media-row').count(), 1);
+    assert.equal(await desktop.locator('[data-home-quadrant="media"] .media-row').count(), 3);
     assert.equal(await desktop.locator('[data-home-quadrant="notices"] .notice-item').count(), 2);
-    assert.equal(await desktop.locator('[data-home-quadrant="research"] .home-direction-row').count(), 3);
+    assert.equal(await desktop.locator('[data-home-quadrant="results"] .research-result-item').count(), 2);
     assert.equal(await desktop.locator('[data-home-quadrant="news"]').getByText('“春节——中国人庆祝传统新年的社会实践”列入相关名录').count(), 0);
 
     const mediaResponse = await desktop.goto(`${base}/media.html`, { waitUntil: 'networkidle' });
     assert.equal(mediaResponse.status(), 200);
-    assert.equal(await desktop.locator('[data-media-list] .media-row').count(), 1);
-    const detailResponse = await desktop.goto(`${base}/media-detail.html?id=spring-festival-list-2024`, { waitUntil: 'networkidle' });
-    assert.equal(detailResponse.status(), 200);
-    assert.match(await desktop.locator('h1').first().innerText(), /春节/);
+    assert.equal(await desktop.locator('[data-media-list] .media-row').count(), 3);
+    const officialLinks = desktop.locator('[data-media-list] .media-row h3 a');
+    assert.equal(await officialLinks.first().getAttribute('target'), '_blank');
+    assert.equal(await officialLinks.first().getAttribute('href'), 'https://paper.people.com.cn/rmrb/pc/content/202609/17/content_30181548.html');
     await desktop.close();
 
     const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });

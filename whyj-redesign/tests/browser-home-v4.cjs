@@ -53,7 +53,7 @@ const server = http.createServer((request, response) => {
     const trackBox = await track.boundingBox();
     const gridBox = await grid.boundingBox();
     assert.ok(trackBox.height >= 110 && trackBox.height <= 150, `transition strip height should stay between 110 and 150px, got ${trackBox.height}`);
-    assert.ok(trackBox.y - (heroBox.y + heroBox.height) >= 20, 'banner and transition strip need visible breathing space');
+    assert.ok(Math.abs(trackBox.y - (heroBox.y + heroBox.height)) <= 1, 'dynamic typography should connect directly to the banner');
     assert.ok(gridBox.y - (trackBox.y + trackBox.height) >= 64, 'transition strip and content panels need visible breathing space');
 
     const panels = desktop.locator('[data-home-quadrant]');
@@ -68,31 +68,28 @@ const server = http.createServer((request, response) => {
     }));
     assert.equal(new Set(panelStyles.map((style) => style.background)).size, 4, 'four panels should have four subtle environmental tones');
     panelStyles.forEach((style) => {
-      assert.ok(style.radius >= 2 && style.radius <= 8, 'panel rounding should remain restrained');
+      assert.ok(style.radius >= 0 && style.radius <= 4, 'module corners should follow the restrained straight-edge system');
       assert.notEqual(style.shadow, 'none', 'panels should have a very light depth cue');
     });
 
     const firstNewsSize = parseFloat(await desktop.locator('[data-home-quadrant="news"] .news-row').nth(0).locator('h3').evaluate((node) => getComputedStyle(node).fontSize));
     const secondNewsSize = parseFloat(await desktop.locator('[data-home-quadrant="news"] .news-row').nth(1).locator('h3').evaluate((node) => getComputedStyle(node).fontSize));
     assert.ok(firstNewsSize >= secondNewsSize + 10, 'lead news title should be the news panel visual anchor');
-    const mediaMark = await desktop.locator('.home-media-list').evaluate((node) => {
-      const style = getComputedStyle(node, '::before');
-      return { content: style.content, size: parseFloat(style.fontSize) };
-    });
-    assert.notEqual(mediaMark.content, 'none');
-    assert.ok(mediaMark.size >= 120, 'media panel should use oversized typographic framing');
+    const mediaMark = desktop.locator('.module-mark-media');
+    assert.equal(await mediaMark.innerText(), 'MEDIA');
+    assert.ok(parseFloat(await mediaMark.evaluate((node) => getComputedStyle(node).fontSize)) >= 80, 'media panel should use oversized typographic framing');
     const noticeDateSize = parseFloat(await desktop.locator('[data-home-quadrant="notices"] .notice-item time b').first().evaluate((node) => getComputedStyle(node).fontSize));
-    assert.ok(noticeDateSize >= 52, 'notice dates should remain unmistakable anchors');
-    const researchNumberSize = parseFloat(await desktop.locator('.home-direction-row > span').first().evaluate((node) => getComputedStyle(node).fontSize));
-    assert.ok(researchNumberSize >= 70, 'research numbering should remain a major academic visual anchor');
+    assert.ok(noticeDateSize >= 40, 'notice dates should remain unmistakable anchors');
+    const resultNumberSize = parseFloat(await desktop.locator('.research-result-item .result-index').first().evaluate((node) => getComputedStyle(node).fontSize));
+    assert.ok(resultNumberSize >= 55, 'research numbering should remain a major academic visual anchor');
 
-    const newsPanel = panels.nth(0);
-    await newsPanel.scrollIntoViewIfNeeded();
-    const transformBefore = await newsPanel.evaluate((node) => getComputedStyle(node).transform);
-    await newsPanel.hover();
-    await desktop.waitForTimeout(450);
-    const transformAfter = await newsPanel.evaluate((node) => getComputedStyle(node).transform);
-    assert.notEqual(transformAfter, transformBefore, 'panel hover should provide a restrained lift');
+    const leadNews = desktop.locator('[data-home-quadrant="news"] .news-row').first();
+    await leadNews.scrollIntoViewIfNeeded();
+    const backgroundBefore = await leadNews.evaluate((node) => getComputedStyle(node).backgroundColor);
+    await leadNews.hover();
+    await desktop.waitForTimeout(280);
+    const backgroundAfter = await leadNews.evaluate((node) => getComputedStyle(node).backgroundColor);
+    assert.notEqual(backgroundAfter, backgroundBefore, 'content rows should provide a restrained hover response');
 
     await track.scrollIntoViewIfNeeded();
     const pointerBefore = parseFloat(await track.evaluate((node) => getComputedStyle(node).getPropertyValue('--track-pointer-shift'))) || 0;

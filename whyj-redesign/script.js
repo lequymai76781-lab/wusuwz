@@ -172,18 +172,40 @@ document.querySelectorAll('[data-news-featured]').forEach((container) => {
 
 const renderMediaList = (container, items, limit) => {
   const visible = Number.isFinite(limit) ? items.slice(0, limit) : items;
-  container.innerHTML = visible.length ? visible.map((item) => `
+  container.innerHTML = visible.length ? visible.map((item) => {
+    const external = /^https?:\/\//.test(item.url || '');
+    const href = external ? item.url : `media-detail.html?id=${encodeURIComponent(item.id)}`;
+    const linkAttributes = external ? ' target="_blank" rel="noopener noreferrer"' : '';
+    return `
     <article class="media-row">
-      <div class="media-meta"><time datetime="${escapeHTML(item.date)}">${escapeHTML(item.date)}</time>${item.source ? `<span>${escapeHTML(item.source)}</span>` : ''}</div>
-      <h3><a href="media-detail.html?id=${encodeURIComponent(item.id)}">${escapeHTML(item.title)}</a></h3>
-      <a class="row-arrow" href="media-detail.html?id=${encodeURIComponent(item.id)}" aria-label="查看${escapeHTML(item.title)}">→</a>
-    </article>`).join('') : '<p class="pending-copy">媒体聚焦真实内容待补充</p>';
+      <div class="media-meta">${item.source ? `<strong class="media-source">${escapeHTML(item.source)}</strong>` : ''}<time datetime="${escapeHTML(item.date)}">${escapeHTML(item.date.replaceAll('-', '.'))}</time></div>
+      <h3><a href="${escapeHTML(href)}"${linkAttributes}>${escapeHTML(item.title)}</a></h3>
+      ${item.summary ? `<p class="media-summary">${escapeHTML(item.summary)}</p>` : ''}
+      <a class="row-arrow media-action" href="${escapeHTML(href)}"${linkAttributes} aria-label="阅读原文：${escapeHTML(item.title)}">阅读原文 <span>↗</span></a>
+    </article>`;
+  }).join('') : '<p class="pending-copy">暂无媒体报道。</p>';
 };
 
 document.querySelectorAll('[data-media-list]').forEach((container) => {
   renderMediaList(container, window.MEDIA || [], Number(container.dataset.limit) || undefined);
 });
 
+const renderResearchResults = (container, items, limit) => {
+  const visible = Number.isFinite(limit) ? items.slice(0, limit) : items;
+  container.innerHTML = visible.length ? visible.map((item, index) => `
+    <article class="research-result-item">
+      <span class="result-index" aria-hidden="true">${String(index + 1).padStart(2, '0')}</span>
+      <div class="result-copy">
+        <div class="result-meta"><span>${escapeHTML(item.type)}</span><span>${escapeHTML(item.source)}</span><time datetime="${escapeHTML(item.date)}">${escapeHTML(item.date.replaceAll('-', '.'))}</time></div>
+        <h3><a href="${escapeHTML(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(item.title)}</a></h3>
+        <a class="result-action" href="${escapeHTML(item.url)}" target="_blank" rel="noopener noreferrer" aria-label="查看成果：${escapeHTML(item.title)}">查看原文 <span>↗</span></a>
+      </div>
+    </article>`).join('') : '<p class="pending-copy">尚无已核验的研究成果资料。</p>';
+};
+
+document.querySelectorAll('[data-research-results]').forEach((container) => {
+  renderResearchResults(container, window.RESEARCH_RESULTS || [], Number(container.dataset.limit) || undefined);
+});
 const renderNoticeList = (container, items, limit) => {
   const visible = Number.isFinite(limit) ? items.slice(0, limit) : items;
   container.innerHTML = visible.map((item) => {
@@ -207,11 +229,11 @@ const renderArticleDetail = (root, items, type) => {
   const item = items.find((entry) => entry.id === id);
   const config = articleTypes[type];
   if (!item) {
-    document.title = `内容未找到｜非物质文化遗产研究中心`;
+    document.title = `内容未找到｜湖北省非物质文化遗产中心`;
     root.innerHTML = `<article><h1>未找到相关内容</h1><p>该内容可能尚未导入或链接有误。</p><a class="back-people" href="${config.page}">← 返回${config.label}</a></article>`;
     return;
   }
-  document.title = `${item.title}｜${config.label}｜非物质文化遗产研究中心`;
+  document.title = `${item.title}｜${config.label}｜湖北省非物质文化遗产中心`;
   root.querySelector('[data-article-title]').textContent = item.title;
   root.querySelector('[data-article-date]').textContent = item.date;
   root.querySelector('[data-article-category]').textContent = item.source || item.category;
@@ -241,10 +263,10 @@ if (expertDetail && window.EXPERTS) {
   const id = new URLSearchParams(location.search).get('id');
   const expert = window.EXPERTS.find((item) => item.id === id);
   if (!expert) {
-    document.title = '专家未找到｜非物质文化遗产研究中心';
+    document.title = '专家未找到｜湖北省非物质文化遗产中心';
     expertDetail.innerHTML = '<section class="content-section"><h1>未找到专家资料</h1><p><a href="people.html#members">返回中心成员 →</a></p></section>';
   } else {
-    document.title = `${expert.name}｜专家简介｜非物质文化遗产研究中心`;
+    document.title = `${expert.name}｜专家简介｜湖北省非物质文化遗产中心`;
     const image = expertDetail.querySelector('[data-expert-image]');
     image.src = expert.image;
     image.alt = expert.name;

@@ -58,20 +58,20 @@ const server = http.createServer((request, response) => {
     const news = await desktop.locator('[data-home-quadrant="news"]').boundingBox();
     const media = await desktop.locator('[data-home-quadrant="media"]').boundingBox();
     const notices = await desktop.locator('[data-home-quadrant="notices"]').boundingBox();
-    const research = await desktop.locator('[data-home-quadrant="research"]').boundingBox();
+    const results = await desktop.locator('[data-home-quadrant="results"]').boundingBox();
     assert.ok(news.width > media.width + 100, 'first row should carry its visual weight on center updates');
-    assert.ok(research.width > notices.width + 100, 'second row should carry its visual weight on research directions');
+    assert.ok(results.width > notices.width + 100, 'second row should carry its visual weight on research outputs');
     assert.ok(notices.y > news.y + news.height + 56, 'editorial rows need generous vertical breathing room');
 
     const firstNewsSize = parseFloat(await desktop.locator('[data-home-quadrant="news"] .news-row').nth(0).locator('h3').evaluate((node) => getComputedStyle(node).fontSize));
     const secondNewsSize = parseFloat(await desktop.locator('[data-home-quadrant="news"] .news-row').nth(1).locator('h3').evaluate((node) => getComputedStyle(node).fontSize));
     assert.ok(firstNewsSize >= secondNewsSize + 8, 'lead news should be visually distinct from the supporting list');
-    const mediaTitleSize = parseFloat(await desktop.locator('[data-home-quadrant="media"] .media-row h3').evaluate((node) => getComputedStyle(node).fontSize));
-    assert.ok(mediaTitleSize >= 30, 'media focus should use a magazine-scale headline');
+    const mediaTitleSize = parseFloat(await desktop.locator('[data-home-quadrant="media"] .media-row h3').first().evaluate((node) => getComputedStyle(node).fontSize));
+    assert.ok(mediaTitleSize >= 18, 'media focus headlines should remain legible without overpowering center updates');
     const noticeDateSize = parseFloat(await desktop.locator('[data-home-quadrant="notices"] .notice-item time b').first().evaluate((node) => getComputedStyle(node).fontSize));
-    assert.ok(noticeDateSize >= 46, 'notice dates should act as visual anchors');
-    const researchNumberSize = parseFloat(await desktop.locator('.home-direction-row > span').first().evaluate((node) => getComputedStyle(node).fontSize));
-    assert.ok(researchNumberSize >= 64, 'research directions should use large editorial numbering');
+    assert.ok(noticeDateSize >= 40, 'notice dates should act as visual anchors');
+    const resultNumberSize = parseFloat(await desktop.locator('.research-result-item .result-index').first().evaluate((node) => getComputedStyle(node).fontSize));
+    assert.ok(resultNumberSize >= 55, 'research outputs should use large archival numbering');
 
     const progressBefore = parseFloat(await track.evaluate((node) => getComputedStyle(node).getPropertyValue('--track-progress'))) || 0;
     await desktop.evaluate(() => window.scrollTo(0, document.querySelector('[data-heritage-track]').offsetTop + 360));
