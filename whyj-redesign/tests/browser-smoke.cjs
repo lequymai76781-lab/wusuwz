@@ -76,7 +76,7 @@ async function inspectPage(page, url, expectedHeading) {
 
     for (const viewport of viewports) {
       const page = await browser.newPage({ viewport });
-      await inspectPage(page, `${base}/index.html`, /让传统体育/);
+      await inspectPage(page, `${base}/index.html`, /数智技术赋能非遗的价值链延伸与良好发展/);
       assert.equal(await page.locator('[data-home-section]').count(), 2, 'home should contain the banner and one core grid');
       assert.equal(await page.locator('[data-slide].active').count(), 1, 'carousel should show exactly one slide');
       const firstTitle = await page.locator('[data-slide].active h1, [data-slide].active h2').innerText();
@@ -125,7 +125,7 @@ async function inspectPage(page, url, expectedHeading) {
     await page.goto(`${base}/media.html`, { waitUntil: 'networkidle' });
     assert.equal(await page.locator('[data-media-list] .media-row').count(), 3);
     await page.goto(`${base}/notices.html`, { waitUntil: 'networkidle' });
-    assert.equal(await page.locator('[data-notice-list] .notice-item').count(), 2);
+    assert.equal(await page.locator('[data-notice-list] .notice-item').count(), 3);
     await page.goto(`${base}/index.html`, { waitUntil: 'networkidle' });
     assert.equal(await page.locator('a[href="https://www.whsu.edu.cn/"]').first().getAttribute('target'), '_blank');
     await page.locator('.search-toggle').click();

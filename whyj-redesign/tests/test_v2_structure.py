@@ -104,7 +104,7 @@ class V2StructureTests(unittest.TestCase):
             for node in grid.children
             if "data-home-quadrant" in node.attrs
         ]
-        self.assertEqual(["news", "media", "notices", "results"], quadrants)
+        self.assertEqual(["news", "notices", "results", "media"], quadrants)
         self.assertEqual([], [node for node in find_all(dom, attr="data-home-quadrant") if node.attrs.get("data-home-quadrant") == "research"])
         self.assertEqual(1, len(find_all(dom, attr="data-media-list")))
         self.assertEqual([], find_all(dom, attr="data-home-media-state"))
@@ -215,9 +215,9 @@ class V2StructureTests(unittest.TestCase):
     def test_research_page_contains_all_three_frozen_directions(self):
         dom = load_dom("research.html")
         expected = {
-            "value-chain": "数智技术赋能非遗的价值链延伸与协同发展",
-            "tourism-experience": "数智驱动体育非遗的文旅融合与跨文化体验",
-            "audiovisual-communication": "体育非遗的数智视听表达与传播转化研究",
+            "value-chain": "数智技术赋能非遗的价值链延伸与良好发展",
+            "tourism-experience": "数智驱动非遗的文旅融合与科学化循证",
+            "research-03": "非遗数智传播与活态转化研究",
         }
         by_id = {node.attrs.get("id"): node.content() for node in find_all(dom, attr="id")}
         for section_id, title in expected.items():

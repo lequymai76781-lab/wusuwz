@@ -176,9 +176,11 @@ const renderMediaList = (container, items, limit) => {
     const external = /^https?:\/\//.test(item.url || '');
     const href = external ? item.url : `media-detail.html?id=${encodeURIComponent(item.id)}`;
     const linkAttributes = external ? ' target="_blank" rel="noopener noreferrer"' : '';
+    const logoStyle = item.logoStyle ? ` media-brand--${escapeHTML(item.logoStyle)}` : '';
+    const logo = item.logo ? `<span class="media-logo-frame"><img src="${escapeHTML(item.logo)}" alt="${escapeHTML(item.logoAlt || item.source || '媒体来源')}" decoding="async"></span>` : '';
     return `
     <article class="media-row">
-      <div class="media-meta">${item.source ? `<strong class="media-source">${escapeHTML(item.source)}</strong>` : ''}<time datetime="${escapeHTML(item.date)}">${escapeHTML(item.date.replaceAll('-', '.'))}</time></div>
+      <div class="media-meta"><div class="media-brand${logoStyle}">${logo}${item.source ? `<strong class="media-source">${escapeHTML(item.source)}</strong>` : ''}</div><time datetime="${escapeHTML(item.date)}">${escapeHTML(item.date.replaceAll('-', '.'))}</time></div>
       <h3><a href="${escapeHTML(href)}"${linkAttributes}>${escapeHTML(item.title)}</a></h3>
       ${item.summary ? `<p class="media-summary">${escapeHTML(item.summary)}</p>` : ''}
       <a class="row-arrow media-action" href="${escapeHTML(href)}"${linkAttributes} aria-label="阅读原文：${escapeHTML(item.title)}">阅读原文 <span>↗</span></a>
@@ -209,8 +211,18 @@ document.querySelectorAll('[data-research-results]').forEach((container) => {
 const renderNoticeList = (container, items, limit) => {
   const visible = Number.isFinite(limit) ? items.slice(0, limit) : items;
   container.innerHTML = visible.map((item) => {
-    const [day, month = ''] = item.date.split(' ');
-    return `<article class="notice-item"><time><b>${escapeHTML(day)}</b><span>${escapeHTML(month)}</span></time><div><span>${escapeHTML(item.category)}</span><h3><a href="notice-detail.html?id=${encodeURIComponent(item.id)}">${escapeHTML(item.title)}</a></h3></div><a class="row-arrow" href="notice-detail.html?id=${encodeURIComponent(item.id)}" aria-label="查看${escapeHTML(item.title)}">→</a></article>`;
+    const isoDate = /^(\d{4})-(\d{2})-(\d{2})$/.exec(item.date);
+    const [legacyDay, legacyMonth = ''] = item.date.split(' ');
+    const day = isoDate ? isoDate[3] : legacyDay;
+    const month = isoDate ? `${isoDate[1]}.${isoDate[2]}` : legacyMonth;
+    const external = /^https?:\/\//.test(item.url || '');
+    const href = external ? item.url : `notice-detail.html?id=${encodeURIComponent(item.id)}`;
+    const linkAttributes = external ? ' target="_blank" rel="noopener noreferrer"' : '';
+    return `<article class="notice-item">
+      <time datetime="${escapeHTML(item.date)}"><b>${escapeHTML(day)}</b><span>${escapeHTML(month)}</span></time>
+      <div><span>${escapeHTML(item.category)}</span><h3><a href="${escapeHTML(href)}"${linkAttributes}>${escapeHTML(item.title)}</a></h3></div>
+      <a class="row-arrow" href="${escapeHTML(href)}"${linkAttributes} aria-label="查看${escapeHTML(item.title)}">→</a>
+    </article>`;
   }).join('');
 };
 

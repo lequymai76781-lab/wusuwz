@@ -606,3 +606,112 @@ body.home-page{background-color:#f6f3ec;background-image:radial-gradient(circle 
   .inner-page .media-action{margin-top:5px}
 }
 @media(max-width:420px){.identity-copy{max-width:190px}}
+/* Home V8: restored asymmetric editorial geometry with flat module surfaces */
+.home-page main:after{content:none;background-image:none}
+.home-core-grid{width:min(calc(100% - clamp(48px,7vw,112px)),1400px);margin:clamp(96px,8vw,132px) auto 0;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:auto auto;column-gap:clamp(42px,4.3vw,72px);row-gap:clamp(96px,8vw,132px);align-items:start}
+.home-quadrant{--module-accent:#75343a;--module-line:rgba(74,61,49,.16);width:auto;height:auto;margin:0;padding:clamp(36px,2.5vw,46px);overflow:hidden;background-image:none!important;border:1px solid var(--module-line);border-top:3px solid var(--module-accent);border-radius:2px;box-shadow:0 18px 54px rgba(52,44,36,.055);color:var(--ink);transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease}
+.home-quadrant:before{content:"";display:block;left:clamp(36px,2.5vw,46px);top:-3px;width:72px;height:3px;background:var(--module-accent);opacity:1}
+.home-quadrant-news:after,.module-mark{display:none!important}
+.home-quadrant-news{--module-accent:#94383e;--module-line:rgba(148,56,62,.16);grid-column:1 / span 7;grid-row:1;min-height:650px;background-color:rgba(249,245,236,.96);border-left:1px solid var(--module-line)}
+.home-quadrant-notices{--module-accent:#8b553b;--module-line:rgba(125,87,55,.19);grid-column:9 / -1;grid-row:1;min-height:540px;margin-top:74px;background-color:rgba(241,233,218,.96)}
+.home-quadrant-results{--module-accent:#3e6b5a;--module-line:rgba(57,99,82,.18);grid-column:1 / span 4;grid-row:2;min-height:430px;background-color:rgba(232,239,233,.96)}
+.home-quadrant-media{--module-accent:#294f43;--module-line:rgba(42,79,67,.18);grid-column:6 / -1;grid-row:2;min-height:620px;background-color:rgba(238,243,239,.97);color:var(--ink)}
+.home-quadrant .quadrant-heading{min-height:104px;padding:0 0 24px;border:0;border-bottom:1px solid var(--module-line)}
+.home-quadrant .quadrant-heading p{margin-bottom:8px;color:var(--module-accent)}
+.home-quadrant .quadrant-heading h2{font-size:clamp(33px,2.35vw,42px);font-weight:600;letter-spacing:-.02em}
+.home-quadrant .quadrant-heading>a,.home-quadrant .quadrant-count,.home-quadrant-media .quadrant-heading>a{margin-top:7px;padding:0;color:#6f685f;font:10px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.08em;opacity:.74}
+.home-quadrant-news .news-row:first-child{min-height:250px;padding:24px 0 30px}
+.home-quadrant-news .news-row:first-child h3{max-width:16em;font-size:clamp(30px,2.25vw,38px);line-height:1.28}
+.home-quadrant-news .news-row:not(:first-child){padding:20px 0}
+.home-quadrant-news .news-row:not(:first-child) h3{font-size:17px;line-height:1.48}
+.home-quadrant-notices .quadrant-heading{padding:0 0 24px;border-top:0;border-bottom:1px solid var(--module-line)}
+.home-quadrant-notices .quadrant-heading h2{font-size:clamp(33px,2.35vw,42px)}
+.home-quadrant-notices .notice-item{grid-template-columns:76px minmax(0,1fr);gap:22px;padding:34px 0;border-bottom-color:var(--module-line)}
+.home-quadrant-notices .notice-item:first-child{padding-top:26px}
+.home-quadrant-notices .notice-item time b{font-size:52px;color:#8f3b3f}
+.home-quadrant-notices .notice-item h3{font-size:19px;line-height:1.55}
+.home-quadrant-results .quadrant-heading{border-bottom-color:var(--module-line)}
+.home-results-list{border:0}
+.home-quadrant-results .research-result-item{grid-template-columns:72px minmax(0,1fr);gap:28px;padding:32px 0;border-bottom-color:var(--module-line)}
+.home-quadrant-results .result-index{font-size:62px;color:rgba(49,94,76,.38)}
+.home-quadrant-results .result-copy h3{margin:13px 0 18px;font-size:clamp(21px,1.55vw,27px);line-height:1.42}
+.home-quadrant-results .result-meta span:first-child,.home-quadrant-results .result-action{color:#345f50}
+.media-focus-shell{min-height:0;padding:0;border:0}
+.media-focus-kicker{padding:13px 0;color:#4f6e62;border-bottom:1px solid var(--module-line)}
+.media-focus-kicker span{font-size:8px}
+.media-focus-kicker b{font-size:11px}
+.home-media-list{min-height:0;padding:0}
+.home-media-list:before,.media-focus-shell:after{content:none!important}
+.home-quadrant-media .media-row{position:relative;display:block;padding:14px 0 13px;border-bottom:1px solid var(--module-line);color:var(--ink)}
+.home-quadrant-media .media-row:last-child{padding-bottom:0;border-bottom:0}
+.home-quadrant-media .media-meta{display:flex;align-items:center;justify-content:space-between;gap:18px;color:#716d66;font:9px/1.35 ui-monospace,Consolas,monospace;letter-spacing:.07em}
+.media-brand{display:flex;align-items:center;gap:10px;min-width:0}
+.media-logo-frame{position:relative;display:grid;place-items:center;flex:0 0 auto;height:50px;overflow:hidden;background:rgba(255,255,255,.72);border:1px solid rgba(47,72,63,.11)}
+.media-brand--people .media-logo-frame{width:138px}
+.media-brand--people .media-logo-frame img{position:absolute;left:0;top:0;width:260px;max-width:none;height:auto}
+.media-brand--guangming .media-logo-frame{width:50px}
+.media-brand--guangming .media-logo-frame img{width:48px;height:48px;object-fit:contain}
+.media-source{color:#50655d;font:600 11px/1.3 Georgia,"Songti SC",serif;letter-spacing:.08em;white-space:nowrap}
+.home-quadrant-media .media-row h3{max-width:none;margin:8px 0 0;font-size:17px;line-height:1.42;letter-spacing:0}
+.home-quadrant-media .media-row h3 a{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.media-summary{display:-webkit-box;overflow:hidden;margin:5px 0 0;color:#676d68;font-size:11px;line-height:1.55;-webkit-box-orient:vertical;-webkit-line-clamp:1}
+.home-quadrant-media .media-action{display:inline-flex;align-items:center;gap:5px;margin-top:5px;color:#315b4c;font:9px/1.3 ui-monospace,Consolas,monospace;letter-spacing:.08em}
+@media(hover:hover){
+  .home-quadrant:hover,.home-quadrant-news:hover,.home-quadrant-media:hover,.home-quadrant-results:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--module-accent) 34%,transparent);box-shadow:0 22px 62px rgba(49,42,35,.075)}
+  .home-quadrant-media .media-row:hover{background:rgba(42,79,67,.025);border-bottom-color:rgba(42,79,67,.3)}
+}
+@media(max-width:1040px){
+  .home-core-grid{width:calc(100% - 40px);margin-top:56px;grid-template-columns:1fr;grid-template-rows:none;gap:24px}
+  .home-quadrant{width:100%!important;height:auto;min-height:0!important;padding:36px clamp(24px,5vw,40px) 42px}
+  .home-quadrant-news,.home-quadrant-notices,.home-quadrant-results,.home-quadrant-media{grid-column:1!important;grid-row:auto!important;margin-top:0!important}
+}
+@media(max-width:620px){
+  .home-core-grid{width:calc(100% - 32px);margin-top:48px;gap:22px}
+  .home-quadrant{padding:32px 22px 38px}
+  .home-quadrant .quadrant-heading{min-height:94px;padding-bottom:21px}
+  .home-quadrant .quadrant-heading h2,.home-quadrant-notices .quadrant-heading h2{font-size:32px}
+  .home-quadrant-news .news-row:first-child{min-height:0;padding-top:22px}
+  .home-quadrant-news .news-row:first-child h3{font-size:28px}
+  .home-quadrant-news .news-row:not(:first-child){grid-template-columns:1fr 20px}
+  .home-quadrant-notices .notice-item{grid-template-columns:60px minmax(0,1fr);gap:16px;padding:27px 0}
+  .home-quadrant-notices .notice-item time b{font-size:42px}
+  .home-quadrant-results .research-result-item{grid-template-columns:50px minmax(0,1fr);gap:17px;padding:28px 0}
+  .home-quadrant-results .result-index{font-size:48px}
+  .media-logo-frame{height:46px}
+  .media-brand--people .media-logo-frame{width:126px}
+  .media-brand--people .media-logo-frame img{width:238px}
+  .media-brand--guangming .media-logo-frame{width:46px}
+  .media-brand--guangming .media-logo-frame img{width:44px;height:44px}
+  .media-source{display:none}
+  .home-page .site-footer{margin-top:72px}
+}
+.home-quadrant-media .media-row>.media-action{margin-top:5px;color:#315b4c;font:9px/1.3 ui-monospace,Consolas,monospace}
+.home-quadrant-media .media-focus-kicker{padding:10px 0}
+.home-quadrant-media .media-row{padding-top:12px;padding-bottom:11px}
+
+/* Final research copy and abstract Hubei bianzhong transition band */
+.home-slide-copy .research-direction-title{max-width:16em;font-size:clamp(32px,4vw,56px);line-height:1.12;letter-spacing:-.025em;text-wrap:balance}
+.home-cultural-divider{width:100%;height:64px;margin-top:clamp(84px,8vw,124px);overflow:hidden;background:#eee6d8;border-top:1px solid rgba(53,84,72,.16);border-bottom:1px solid rgba(124,52,58,.18)}
+.home-cultural-divider svg{display:block;width:100%;height:64px}
+.bianzhong-band-base{fill:#eee6d8}
+.bianzhong-frame{fill:none;stroke:rgba(49,82,69,.54);stroke-width:1.25}
+.bianzhong-hanger{fill:none;stroke:rgba(49,82,69,.46);stroke-width:1.1}
+.bianzhong-bell{stroke-width:1.25;stroke-linejoin:round}
+.bianzhong-bell-maroon{fill:rgba(125,52,58,.11);stroke:rgba(125,52,58,.62)}
+.bianzhong-bell-green{fill:rgba(49,82,69,.1);stroke:rgba(49,82,69,.62)}
+.bianzhong-node{fill:rgba(125,52,58,.5)}
+.bianzhong-rhythm-line{fill:none;stroke:rgba(125,52,58,.34);stroke-width:1}
+.bianzhong-band-rule{stroke:rgba(125,52,58,.28);stroke-width:1}
+.home-page .site-footer{margin-top:0}
+.direction-support-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:620px){
+  .home-slide-copy .research-direction-title{font-size:clamp(27px,7.6vw,38px);line-height:1.16}
+  .home-cultural-divider{height:56px;margin-top:72px}.home-cultural-divider svg{height:56px}
+}
+
+@media(min-width:1041px){
+  .home-quadrant-results .research-result-item{grid-template-columns:44px minmax(0,1fr);gap:16px;padding:22px 0}
+  .home-quadrant-results .result-index{font-size:44px}
+  .home-quadrant-results .result-copy h3{margin:9px 0 13px;font-size:18px;line-height:1.42}
+  .home-quadrant-results .result-meta{gap:5px 9px;font-size:9px}
+}

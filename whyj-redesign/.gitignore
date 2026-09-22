@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.cache/
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+qa/
+*.zip
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc
+tests/artifacts/
