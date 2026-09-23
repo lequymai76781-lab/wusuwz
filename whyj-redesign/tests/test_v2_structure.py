@@ -96,7 +96,7 @@ class V2StructureTests(unittest.TestCase):
         self.assertEqual(3, len(find_all(dom, attr="data-slide")))
         self.assertEqual(3, len(find_all(dom, attr="data-go")))
 
-    def test_home_core_grid_uses_results_instead_of_research_directions(self):
+    def test_home_core_grid_uses_the_approved_four_modules_in_mobile_order(self):
         dom = load_dom("index.html")
         grid = find_all(dom, class_name="home-core-grid")[0]
         quadrants = [
@@ -104,8 +104,8 @@ class V2StructureTests(unittest.TestCase):
             for node in grid.children
             if "data-home-quadrant" in node.attrs
         ]
-        self.assertEqual(["news", "notices", "results", "media"], quadrants)
-        self.assertEqual([], [node for node in find_all(dom, attr="data-home-quadrant") if node.attrs.get("data-home-quadrant") == "research"])
+        self.assertEqual(["news", "notices", "research", "media"], quadrants)
+        self.assertEqual(1, len([node for node in find_all(dom, attr="data-home-quadrant") if node.attrs.get("data-home-quadrant") == "research"]))
         self.assertEqual(1, len(find_all(dom, attr="data-media-list")))
         self.assertEqual([], find_all(dom, attr="data-home-media-state"))
 
@@ -122,18 +122,19 @@ class V2StructureTests(unittest.TestCase):
         for temporary_copy in ("资料" + "待核验", "来源" + "待确认", "真实报道将在确认媒体来源后" + "发布"):
             self.assertNotIn(temporary_copy, (ROOT / "index.html").read_text(encoding="utf-8"))
 
-    def test_home_results_are_the_two_verified_wechat_articles(self):
+    def test_research_results_archive_is_retained_but_not_loaded_on_home(self):
         data_path = ROOT / "research-results-data.js"
-        self.assertTrue(data_path.exists(), "research results need their own data source")
+        self.assertTrue(data_path.exists(), "the verified research-results archive must not be deleted")
         source = data_path.read_text(encoding="utf-8")
         urls = re.findall(r'url:\s*"([^"]+)"', source)
         self.assertEqual([
             "https://mp.weixin.qq.com/s/7CfV_VVHeiJMG84GoI4UHA",
             "https://mp.weixin.qq.com/s/qg4LxiSi-ZOupq19c1rmjA",
         ], urls)
-        scripts = [node.attrs.get("src") for node in find_all(load_dom("index.html"), tag="script")]
-        self.assertIn("research-results-data.js", scripts)
-        self.assertEqual(1, len(find_all(load_dom("index.html"), attr="data-research-results")))
+        home = load_dom("index.html")
+        scripts = [node.attrs.get("src") for node in find_all(home, tag="script")]
+        self.assertNotIn("research-results-data.js", scripts)
+        self.assertEqual(0, len(find_all(home, attr="data-research-results")))
 
     def test_home_header_has_a_distinct_brand_lockup(self):
         dom = load_dom("index.html")

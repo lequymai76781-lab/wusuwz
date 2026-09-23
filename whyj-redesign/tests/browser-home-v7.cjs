@@ -33,14 +33,15 @@ const officialDirections = [
   const base = `http://127.0.0.1:${server.address().port}`;
   const browser = await chromium.launch({ ...(browserExecutable ? { executablePath: browserExecutable } : {}), headless: true });
   try {
-    for (const viewport of [{ name: '1920', width: 1920, height: 1080 }, { name: '1440', width: 1440, height: 900 }, { name: 'mobile', width: 390, height: 844 }]) {
+    for (const viewport of [{ name: '1920', width: 1920, height: 1080 }, { name: '1440', width: 1440, height: 900 }, { name: 'tablet', width: 820, height: 1024 }, { name: 'mobile', width: 390, height: 844 }]) {
       const page = await browser.newPage({ viewport });
       const errors = [];
       page.on('pageerror', (error) => errors.push(error.message));
       page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
       await page.goto(`${base}/index.html`, { waitUntil: 'networkidle' });
 
-      assert.deepEqual(await page.locator('[data-home-quadrant]').evaluateAll((nodes) => nodes.map((node) => node.dataset.homeQuadrant)), ['news', 'notices', 'results', 'media']);
+      assert.deepEqual(await page.locator('[data-home-quadrant]').evaluateAll((nodes) => nodes.map((node) => node.dataset.homeQuadrant)), ['news', 'notices', 'research', 'media']);
+      assert.deepEqual(await page.locator('[data-home-quadrant="research"] .home-research-direction h3').allInnerTexts(), officialDirections);
       assert.equal(await page.locator('.module-mark').count(), 0);
       assert.equal(await page.locator('[data-home-quadrant="media"] .media-row').count(), 3);
       assert.deepEqual(await page.locator('.media-brand img').evaluateAll((nodes) => nodes.map((node) => node.alt)), ['人民日报', '光明日报', '光明日报']);
@@ -73,21 +74,37 @@ const officialDirections = [
 
       const modules = await readModules(page);
       modules.forEach((item) => {
-        assert.equal(item.image, 'none', `${item.name} owns a decorative texture`);
+        assert.equal(item.image, 'none', `${item.name} owns a repeated background image`);
         assert.ok(item.overflowX <= 1 && item.overflowY <= 1, `${viewport.name} ${item.name} overflows`);
       });
+      assert.equal(new Set(modules.map((item) => item.background)).size, 4, 'all four modules need distinct visual identities');
       const byName = Object.fromEntries(modules.map((item) => [item.name, item]));
-      if (viewport.width >= 1041) {
-        assert.ok(byName.news.width > byName.notices.width * 1.35, 'top-left news must remain clearly wider than top-right notices');
-        assert.ok(byName.media.width > byName.results.width * 1.35, 'bottom-right media must remain clearly wider than bottom-left results');
-        assert.ok(byName.notices.x > byName.news.right, 'notices must stay in the top-right position');
-        assert.ok(byName.results.x < byName.media.x, 'results must stay left of media');
-        assert.ok(byName.results.y > byName.news.bottom, 'results must stay below news with breathing room');
-        assert.ok(byName.media.y > byName.notices.bottom, 'media must stay below notices with breathing room');
-        assert.ok(Math.max(...modules.map((item) => item.height)) - Math.min(...modules.map((item) => item.height)) >= 80, `${viewport.name} modules became equal-height again`);
+      if (viewport.width >= 760) {
+        const tolerance = 2;
+        assert.ok(Math.abs(byName.news.y - byName.notices.y) <= tolerance, 'top row must align');
+        assert.ok(Math.abs(byName.research.y - byName.media.y) <= tolerance, 'bottom row must align');
+        assert.ok(Math.abs(byName.news.x - byName.research.x) <= tolerance, 'left column edges must align');
+        assert.ok(Math.abs(byName.notices.x - byName.media.x) <= tolerance, 'right column edges must align');
+        assert.ok(Math.abs(byName.news.width - byName.research.width) <= tolerance, 'left column widths must match');
+        assert.ok(Math.abs(byName.notices.width - byName.media.width) <= tolerance, 'right column widths must match');
+        assert.ok(Math.abs(byName.news.height - byName.notices.height) <= tolerance, 'top row heights must match');
+        assert.ok(Math.abs(byName.research.height - byName.media.height) <= tolerance, 'bottom row heights must match');
+        const maxCardHeight = viewport.width >= 1041 ? 680 : 760;
+        assert.ok(Math.max(...modules.map((item) => item.height)) <= maxCardHeight, `${viewport.name} field-grid cards are too tall`);
+
+        const columnGap = byName.notices.x - byName.news.right;
+        const rowGap = byName.research.y - byName.news.bottom;
+        assert.ok(columnGap >= 16 && columnGap <= 24, `${viewport.name} column gap is ${columnGap}px`);
+        assert.ok(rowGap >= 16 && rowGap <= 24, `${viewport.name} row gap is ${rowGap}px`);
+
+        const columnRatio = byName.news.width / byName.notices.width;
+        assert.ok(columnRatio >= 1 && columnRatio <= 1.08, `${viewport.name} column ratio ${columnRatio} breaks the field grid`);
+        const rowRatio = byName.news.height / byName.research.height;
+        assert.ok(rowRatio >= 0.88 && rowRatio <= 1.12, `${viewport.name} row ratio ${rowRatio} is not balanced`);
       } else {
         for (let index = 1; index < modules.length; index += 1) {
-          assert.ok(modules[index].y >= modules[index - 1].bottom + 18, 'mobile modules overlap');
+          const gap = modules[index].y - modules[index - 1].bottom;
+          assert.ok(gap >= 16 && gap <= 24, `mobile gap is ${gap}px`);
           assert.ok(Math.abs(modules[index].width - modules[0].width) <= 2, 'mobile module widths differ');
         }
       }
@@ -99,10 +116,11 @@ const officialDirections = [
       assert.equal(await page.locator('.site-footer h2').innerText(), '湖北省非物质文化遗产中心');
       assert.ok(await page.locator('html').evaluate((node) => node.scrollWidth - node.clientWidth) <= 1, `${viewport.name} page overflows`);
       assert.deepEqual(errors, []);
-      await page.screenshot({ path: path.join(visualDir, `home-final-${viewport.name}-full.png`), fullPage: true });
+      await page.locator('.home-core-grid').screenshot({ path: path.join(visualDir, `home-grid-${viewport.name}-core.png`) });
+      await page.screenshot({ path: path.join(visualDir, `home-grid-${viewport.name}-full.png`), fullPage: true });
       await page.close();
     }
-    console.log('home final visual QA passed');
+    console.log('home field-grid visual QA passed');
   } finally {
     await browser.close();
     await new Promise((resolve) => server.close(resolve));

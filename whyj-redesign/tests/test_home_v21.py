@@ -7,7 +7,7 @@ from tests.test_v2_structure import ROOT, find_all, load_dom
 
 
 class HomeV21Tests(unittest.TestCase):
-    def test_home_is_banner_plus_one_hierarchical_four_module_grid(self):
+    def test_home_is_banner_plus_one_compact_four_module_grid(self):
         dom = load_dom("index.html")
         sections = [node.attrs["data-home-section"] for node in find_all(dom, attr="data-home-section")]
         self.assertEqual(["banner", "core-grid"], sections)
@@ -19,8 +19,18 @@ class HomeV21Tests(unittest.TestCase):
             for node in grids[0].children
             if "data-home-quadrant" in node.attrs
         ]
-        self.assertEqual(["news", "notices", "results", "media"], quadrants)
+        self.assertEqual(["news", "notices", "research", "media"], quadrants)
         self.assertEqual([], find_all(dom, class_name="home-about"))
+
+        research_modules = find_all(dom, class_name="home-research-directions")
+        self.assertEqual(1, len(research_modules))
+        self.assertEqual(0, len(find_all(dom, attr="data-research-results")))
+        for title in (
+            "数智技术赋能非遗的价值链延伸与良好发展",
+            "数智驱动非遗的文旅融合与科学化循证",
+            "非遗数智传播与活态转化研究",
+        ):
+            self.assertIn(title, research_modules[0].content())
 
     def test_media_is_a_real_independent_content_type(self):
         required = {"media-data.js", "media.html", "media-detail.html"}
