@@ -151,12 +151,17 @@ const escapeHTML = (value = '') => String(value).replace(/[&<>'"]/g, (character)
 
 const renderNewsList = (container, items, limit) => {
   const visible = Number.isFinite(limit) ? items.slice(0, limit) : items;
-  container.innerHTML = visible.map((item) => `
+  container.innerHTML = visible.map((item) => {
+    const external = /^https?:\/\//.test(item.url || '');
+    const href = external ? item.url : `news-detail.html?id=${encodeURIComponent(item.id)}`;
+    const linkAttributes = external ? ' target="_blank" rel="noopener noreferrer"' : '';
+    return `
     <article class="news-row">
       <time datetime="${escapeHTML(item.date)}">${escapeHTML(item.date)}</time>
-      <div><span class="category">${escapeHTML(item.category)}</span><h3><a href="news-detail.html?id=${encodeURIComponent(item.id)}">${escapeHTML(item.title)}</a></h3>${item.summary ? `<p>${escapeHTML(item.summary)}</p>` : ''}</div>
-      <a class="row-arrow" href="news-detail.html?id=${encodeURIComponent(item.id)}" aria-label="查看${escapeHTML(item.title)}">→</a>
-    </article>`).join('');
+      <div><span class="category">${escapeHTML(item.category)}</span><h3><a href="${escapeHTML(href)}"${linkAttributes}>${escapeHTML(item.title)}</a></h3>${item.summary ? `<p>${escapeHTML(item.summary)}</p>` : ''}</div>
+      <a class="row-arrow" href="${escapeHTML(href)}"${linkAttributes} aria-label="查看${escapeHTML(item.title)}">→</a>
+    </article>`;
+  }).join('');
 };
 
 document.querySelectorAll('[data-news-list]').forEach((container) => {
@@ -194,15 +199,19 @@ document.querySelectorAll('[data-media-list]').forEach((container) => {
 
 const renderResearchResults = (container, items, limit) => {
   const visible = Number.isFinite(limit) ? items.slice(0, limit) : items;
-  container.innerHTML = visible.length ? visible.map((item, index) => `
+  container.innerHTML = visible.length ? visible.map((item, index) => {
+    const linkAttributes = item.newTab ? ' target="_blank" rel="noopener noreferrer"' : '';
+    const actionText = item.newTab ? '打开 PDF' : '查看详情';
+    return `
     <article class="research-result-item">
       <span class="result-index" aria-hidden="true">${String(index + 1).padStart(2, '0')}</span>
       <div class="result-copy">
-        <div class="result-meta"><span>${escapeHTML(item.type)}</span><span>${escapeHTML(item.source)}</span><time datetime="${escapeHTML(item.date)}">${escapeHTML(item.date.replaceAll('-', '.'))}</time></div>
-        <h3><a href="${escapeHTML(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(item.title)}</a></h3>
-        <a class="result-action" href="${escapeHTML(item.url)}" target="_blank" rel="noopener noreferrer" aria-label="查看成果：${escapeHTML(item.title)}">查看原文 <span>↗</span></a>
+        <div class="result-meta"><span>${escapeHTML(item.type)}</span><span>${escapeHTML(item.source)}</span></div>
+        <h3 title="${escapeHTML(item.title)}"><a href="${escapeHTML(item.url)}"${linkAttributes}>${escapeHTML(item.title)}</a></h3>
       </div>
-    </article>`).join('') : '<p class="pending-copy">尚无已核验的研究成果资料。</p>';
+      <a class="result-action" href="${escapeHTML(item.url)}"${linkAttributes} aria-label="${escapeHTML(actionText)}：${escapeHTML(item.title)}">${escapeHTML(actionText)} <span>↗</span></a>
+    </article>`;
+  }).join('') : '<p class="pending-copy">尚无已核验的研究成果资料。</p>';
 };
 
 document.querySelectorAll('[data-research-results]').forEach((container) => {

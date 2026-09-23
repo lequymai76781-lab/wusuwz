@@ -24,7 +24,8 @@ const mimeTypes = {
   '.js': 'text/javascript; charset=utf-8',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
-  '.png': 'image/png'
+  '.png': 'image/png',
+  '.pdf': 'application/pdf'
 };
 
 const server = http.createServer((request, response) => {
@@ -107,6 +108,7 @@ async function inspectPage(page, url, expectedHeading) {
       ['/notices.html', /通知公告/],
       ['/news-detail.html?id=national-heritage-meeting-2024', /2024年全国非物质文化遗产保护工作会议/],
       ['/notice-detail.html?id=heritage-day-notice', /文化和自然遗产日/],
+      ['/research-award-detail.html', /中心研究员王安妮教授成果荣获湖北省社会科学优秀成果奖二等奖/],
       ['/about.html#organization', /中心简介/],
       ['/people.html#members', /学术团队/],
       ['/people-detail.html?id=su-jianjiao', /苏健蛟/],
@@ -120,7 +122,7 @@ async function inspectPage(page, url, expectedHeading) {
     ];
     for (const [route, heading] of routes) await inspectPage(page, base + route, heading);
     await page.goto(`${base}/news.html`, { waitUntil: 'networkidle' });
-    assert.equal(await page.locator('[data-news-list] .news-row').count(), 3);
+    assert.equal(await page.locator('[data-news-list] .news-row').count(), 4);
     await page.screenshot({ path: path.join(visualDir, 'news-list-1440.png'), fullPage: false });
     await page.goto(`${base}/media.html`, { waitUntil: 'networkidle' });
     assert.equal(await page.locator('[data-media-list] .media-row').count(), 3);

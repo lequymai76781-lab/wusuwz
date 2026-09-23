@@ -84,6 +84,7 @@ class V2StructureTests(unittest.TestCase):
             "notices.html",
             "news-detail.html",
             "notice-detail.html",
+            "research-award-detail.html",
             "news-data.js",
             "notice-data.js",
         }
@@ -122,20 +123,54 @@ class V2StructureTests(unittest.TestCase):
         for temporary_copy in ("资料" + "待核验", "来源" + "待确认", "真实报道将在确认媒体来源后" + "发布"):
             self.assertNotIn(temporary_copy, (ROOT / "index.html").read_text(encoding="utf-8"))
 
-    def test_research_results_archive_is_retained_but_not_loaded_on_home(self):
+    def test_home_research_results_use_fixed_order_and_local_pdfs(self):
         data_path = ROOT / "research-results-data.js"
-        self.assertTrue(data_path.exists(), "the verified research-results archive must not be deleted")
+        self.assertTrue(data_path.exists())
         source = data_path.read_text(encoding="utf-8")
+        titles = re.findall(r'title:\s*"([^"]+)"', source)
+        self.assertEqual([
+            "【社科成果奖】中心研究员王安妮教授成果荣获湖北省社会科学优秀成果奖二等奖",
+            "【研究论文】张颖慧等：大学生体育锻炼与负性生活事件对生活满意度的影响——基于消极情绪为中介的结构方程模型分析",
+            "【研究论文】吕永峰等：体育饭圈治理制度困境的生成机理及其纾解路径——基于中国国家治理制度逻辑的视角",
+            "【研究论文】张颖慧等：长期武术运动对大学生静息态脑网络连接的可塑性研究——来自fNIRS的证据",
+        ], titles)
         urls = re.findall(r'url:\s*"([^"]+)"', source)
         self.assertEqual([
-            "https://mp.weixin.qq.com/s/7CfV_VVHeiJMG84GoI4UHA",
-            "https://mp.weixin.qq.com/s/qg4LxiSi-ZOupq19c1rmjA",
+            "research-award-detail.html",
+            "assets/papers/college-exercise-life-satisfaction.pdf",
+            "assets/papers/sports-fandom-governance.pdf",
+            "assets/papers/martial-arts-fnirs-brain-network.pdf",
         ], urls)
+
         home = load_dom("index.html")
         scripts = [node.attrs.get("src") for node in find_all(home, tag="script")]
-        self.assertNotIn("research-results-data.js", scripts)
-        self.assertEqual(0, len(find_all(home, attr="data-research-results")))
+        self.assertIn("research-results-data.js", scripts)
+        self.assertEqual(1, len(find_all(home, attr="data-research-results")))
 
+        for relative in urls[1:]:
+            pdf = ROOT / relative
+            self.assertTrue(pdf.exists(), f"missing {relative}")
+            self.assertEqual(b"%PDF-", pdf.read_bytes()[:5])
+
+    def test_center_news_keeps_the_approved_title_and_wechat_url(self):
+        source = (ROOT / "news-data.js").read_text(encoding="utf-8")
+        self.assertIn(
+            'title: "研究中心主任苏健蛟教授受邀出席《汝阳县疗愈产业发展白皮书》发布会"',
+            source,
+        )
+        self.assertIn('url: "https://mp.weixin.qq.com/s/qg4LxiSi-ZOupq19c1rmjA"', source)
+    def test_award_detail_preserves_the_approved_body_verbatim(self):
+        dom = load_dom("research-award-detail.html")
+        paragraphs = [node.content() for node in find_all(dom, class_name="article-body")[0].children if node.tag == "p"]
+        self.assertEqual([
+            "近日，湖北省社会科学界联合会发布《第十五届湖北省社会科学优秀成果奖拟获奖成果公示公告》。根据《湖北省社会科学优秀成果奖励暂行办法》等有关规定，经初评、复评、终审等程序，第十五届湖北省社会科学优秀成果奖共评出拟获奖成果395项。其中，武汉体育学院湖北省非物质文化遗产研究中心研究员王安妮教授学术专著《舞蹈传播学》荣获二等奖。",
+            "湖北省社会科学优秀成果奖是我省哲学社会科学领域的重要奖项，旨在表彰在哲学社会科学研究中取得突出成绩、具有较高学术价值和社会影响力的优秀成果。",
+        ], paragraphs)
+        self.assertEqual(
+            "中心研究员王安妮教授成果荣获湖北省社会科学优秀成果奖二等奖",
+            find_all(dom, tag="h1")[0].content(),
+        )
+        self.assertNotIn(".pdf", (ROOT / "research-award-detail.html").read_text(encoding="utf-8").lower())
     def test_home_header_has_a_distinct_brand_lockup(self):
         dom = load_dom("index.html")
         self.assertEqual(1, len(find_all(dom, attr="data-brand-lockup")))
@@ -149,7 +184,9 @@ class V2StructureTests(unittest.TestCase):
                 source = path.read_text(encoding="utf-8")
                 self.assertIn(current_name, source)
                 self.assertIn(f"© {current_name}", source)
-                self.assertNotIn(retired_name, source)
+                dom = load_dom(path.name)
+                chrome = " ".join(node.content() for node in find_all(dom, tag="header") + find_all(dom, tag="footer"))
+                self.assertNotIn(retired_name, chrome)
 
     def test_every_page_uses_the_frozen_primary_navigation(self):
         expected = ["首页", "中心简介", "中心动态", "学术团队", "他山之石", "联系我们", "武体首页"]

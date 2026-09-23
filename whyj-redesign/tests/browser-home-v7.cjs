@@ -8,7 +8,7 @@ const root = path.resolve(__dirname, '..');
 const visualDir = path.join(__dirname, 'artifacts');
 fs.mkdirSync(visualDir, { recursive: true });
 const browserExecutable = [process.env.BROWSER_EXECUTABLE, 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'].filter(Boolean).find(fs.existsSync);
-const mimeTypes = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
+const mimeTypes = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.pdf': 'application/pdf' };
 const server = http.createServer((request, response) => {
   const pathname = new URL(request.url, 'http://127.0.0.1').pathname;
   const file = path.resolve(root, decodeURIComponent(pathname === '/' ? '/index.html' : pathname).replace(/^\/+/, ''));
@@ -27,6 +27,18 @@ const officialDirections = [
   '数智驱动非遗的文旅融合与科学化循证',
   '非遗数智传播与活态转化研究'
 ];
+const resultTitles = [
+  '【社科成果奖】中心研究员王安妮教授成果荣获湖北省社会科学优秀成果奖二等奖',
+  '【研究论文】张颖慧等：大学生体育锻炼与负性生活事件对生活满意度的影响——基于消极情绪为中介的结构方程模型分析',
+  '【研究论文】吕永峰等：体育饭圈治理制度困境的生成机理及其纾解路径——基于中国国家治理制度逻辑的视角',
+  '【研究论文】张颖慧等：长期武术运动对大学生静息态脑网络连接的可塑性研究——来自fNIRS的证据'
+];
+const resultUrls = [
+  'research-award-detail.html',
+  'assets/papers/college-exercise-life-satisfaction.pdf',
+  'assets/papers/sports-fandom-governance.pdf',
+  'assets/papers/martial-arts-fnirs-brain-network.pdf'
+];
 
 (async () => {
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -41,7 +53,17 @@ const officialDirections = [
       await page.goto(`${base}/index.html`, { waitUntil: 'networkidle' });
 
       assert.deepEqual(await page.locator('[data-home-quadrant]').evaluateAll((nodes) => nodes.map((node) => node.dataset.homeQuadrant)), ['news', 'notices', 'research', 'media']);
-      assert.deepEqual(await page.locator('[data-home-quadrant="research"] .home-research-direction h3').allInnerTexts(), officialDirections);
+      assert.deepEqual(await page.locator('[data-home-quadrant="research"] .research-result-item h3').allInnerTexts(), resultTitles);
+      assert.deepEqual(await page.locator('[data-home-quadrant="research"] .result-index').allInnerTexts(), ['01', '02', '03', '04']);
+      assert.deepEqual(await page.locator('[data-home-quadrant="research"] .research-result-item h3 a').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('href'))), resultUrls);
+      assert.equal(await page.locator('[data-home-quadrant="research"] a[href="research-award-detail.html"][target]').count(), 0);
+      assert.equal(await page.locator('[data-home-quadrant="research"] a[href$=".pdf"][target="_blank"][rel="noopener noreferrer"]').count(), 6);
+      assert.deepEqual(await page.locator('.quadrant-title-lockup h2').allInnerTexts(), ['中心动态', '通知公告', '研究成果', '媒体聚焦']);
+      assert.deepEqual(await page.locator('.quadrant-title-en b').allInnerTexts(), ['N', 'N', 'R', 'M']);
+      assert.deepEqual(await page.locator('.quadrant-title-en small').allInnerTexts(), ['ews', 'otice', 'esearch', 'edia']);
+      assert.equal(await page.locator('.quadrant-title-rule').count(), 4);
+      assert.equal(await page.locator('.quadrant-more').count(), 4);
+      assert.equal(await page.locator('.quadrant-heading').evaluateAll((nodes) => nodes.every((node) => node.scrollWidth - node.clientWidth <= 1)), true);
       assert.equal(await page.locator('.module-mark').count(), 0);
       assert.equal(await page.locator('[data-home-quadrant="media"] .media-row').count(), 3);
       assert.deepEqual(await page.locator('.media-brand img').evaluateAll((nodes) => nodes.map((node) => node.alt)), ['人民日报', '光明日报', '光明日报']);
@@ -63,6 +85,19 @@ const officialDirections = [
       const noticeTime = page.locator('[data-home-quadrant="notices"] .notice-item').first().locator('time');
       assert.equal(await noticeTime.getAttribute('datetime'), '2026-09-21');
       assert.match((await noticeTime.innerText()).replace(/\s+/g, ' '), /21.*2026\.09/);
+      const centerNews = page.getByRole('link', { name: '研究中心主任苏健蛟教授受邀出席《汝阳县疗愈产业发展白皮书》发布会', exact: true }).first();
+      assert.equal(await centerNews.getAttribute('href'), 'https://mp.weixin.qq.com/s/qg4LxiSi-ZOupq19c1rmjA');
+      assert.equal(await centerNews.getAttribute('target'), '_blank');
+      assert.equal(await centerNews.getAttribute('rel'), 'noopener noreferrer');
+
+      if (viewport.name === '1440') {
+        for (const pdfUrl of resultUrls.slice(1)) {
+          const pdfResponse = await page.request.get(base + '/' + pdfUrl);
+          assert.equal(pdfResponse.status(), 200, pdfUrl);
+          assert.match(pdfResponse.headers()['content-type'], /^application\/pdf/);
+          assert.equal((await pdfResponse.body()).subarray(0, 5).toString(), '%PDF-');
+        }
+      }
 
       const divider = page.locator('.home-cultural-divider');
       assert.equal(await divider.count(), 1);

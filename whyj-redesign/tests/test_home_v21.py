@@ -22,15 +22,22 @@ class HomeV21Tests(unittest.TestCase):
         self.assertEqual(["news", "notices", "research", "media"], quadrants)
         self.assertEqual([], find_all(dom, class_name="home-about"))
 
-        research_modules = find_all(dom, class_name="home-research-directions")
-        self.assertEqual(1, len(research_modules))
-        self.assertEqual(0, len(find_all(dom, attr="data-research-results")))
-        for title in (
-            "数智技术赋能非遗的价值链延伸与良好发展",
-            "数智驱动非遗的文旅融合与科学化循证",
-            "非遗数智传播与活态转化研究",
-        ):
-            self.assertIn(title, research_modules[0].content())
+        self.assertEqual(0, len(find_all(dom, class_name="home-research-directions")))
+        self.assertEqual(1, len(find_all(dom, attr="data-research-results")))
+
+        scripts = [node.attrs.get("src") for node in find_all(dom, tag="script")]
+        self.assertIn("research-results-data.js", scripts)
+
+    def test_home_module_titles_share_the_approved_bilingual_lockup(self):
+        dom = load_dom("index.html")
+        lockups = find_all(dom, class_name="quadrant-title-lockup")
+        self.assertEqual(4, len(lockups))
+        self.assertEqual(
+            ["N ews 中心动态", "N otice 通知公告", "R esearch 研究成果", "M edia 媒体聚焦"],
+            [node.content() for node in lockups],
+        )
+        self.assertEqual(4, len(find_all(dom, class_name="quadrant-title-rule")))
+        self.assertEqual(4, len(find_all(dom, class_name="quadrant-more")))
 
     def test_media_is_a_real_independent_content_type(self):
         required = {"media-data.js", "media.html", "media-detail.html"}
